@@ -1,0 +1,19 @@
+xcmsend(1)
+==========
+Ingo Bürk <admin@airblader.de>
+
+== NAME
+
+xcmsend - Utility to send X11 client messages
+
+== SYNOPSIS
+
+xcmsend [-h|--help] [-v|--version]
+
+== OPTIONS
+
+-h|--help::
+Display the usage and exit.
+
+-v|--version::
+Display the version and exit.
