@@ -12,7 +12,7 @@ CC = gcc
 CFLAGS += -I$(IDIR)
 CFLAGS += -std=gnu99
 CFLAGS += -Wall -Wundef -Wshadow
-#LIBS = $(shell pkg-config --libs )
+LIBS = $(shell pkg-config --libs xcb xcb-aux)
 
 INCS = $(wildcard $(IDIR)/*.h)
 SRCS = $(wildcard $(SDIR)/*.c)

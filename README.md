@@ -1,3 +1,3 @@
 # xcmsend
 
-Lorem ipsum.
+Utility to send X11 client messages
