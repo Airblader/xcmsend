@@ -1,8 +1,65 @@
 // vim:ts=4:sw=4:expandtab
 #include "all.h"
 
+static bool window_is_client(xcb_connection_t *conn, xcb_window_t window) {
+    xcb_get_property_cookie_t pcookie = xcb_get_property(conn, false, window, A_WM_STATE,
+            XCB_GET_PROPERTY_TYPE_ANY, 0, UINT32_MAX);
+    xcb_get_property_reply_t *preply = xcb_get_property_reply(conn, pcookie, NULL);
+
+    bool result = (preply != NULL && xcb_get_property_value_length(preply) != 0);
+    FREE(preply);
+
+    return result;
+}
+
+static xcb_window_t descend_window(xcb_connection_t *conn, xcb_window_t window) {
+    xcb_grab_server(conn);
+
+    xcb_query_tree_cookie_t tcookie = xcb_query_tree(conn, window);
+    xcb_query_tree_reply_t *treply = xcb_query_tree_reply(conn, tcookie, NULL);
+    if (treply == NULL)
+        return XCB_NONE;
+
+    if (xcb_query_tree_children_length(treply) == 0)
+        return XCB_NONE;
+    xcb_window_t *children = xcb_query_tree_children(treply);
+
+    xcb_window_t client = XCB_NONE;
+    for (int i = 0; i < xcb_query_tree_children_length(treply); i++) {
+        xcb_get_window_attributes_cookie_t acookie = xcb_get_window_attributes(conn, children[i]);
+        xcb_get_window_attributes_reply_t *areply = xcb_get_window_attributes_reply(conn, acookie, NULL);
+        if (areply == NULL || areply->map_state != XCB_MAP_STATE_VIEWABLE) {
+            children[i] = XCB_NONE;
+            continue;
+        }
+        FREE(areply);
+
+        if (!window_is_client(conn, children[i]))
+            continue;
+
+        client = children[i];
+        goto done;
+    }
+
+    for (int i = 0; i < xcb_query_tree_children_length(treply); i++) {
+        if (children[i] == XCB_NONE)
+            continue;
+        client = descend_window(conn, children[i]);
+        if (client != XCB_NONE)
+            break;
+    }
+
+done:
+    FREE(treply);
+    xcb_ungrab_server(conn);
+
+    return client;
+}
+
 /*
  * Let the user select a window.
+ *
+ * This is an almost 1:1 translation of xprop's code for XCB.
  *
  */
 xcb_window_t select_window(void) {
@@ -69,6 +126,13 @@ xcb_window_t select_window(void) {
 
     xcb_ungrab_pointer(conn, XCB_CURRENT_TIME);
     xcb_flush(conn);
+
+    if (window != root_screen->root && !window_is_client(conn, window)) {
+        xcb_window_t child = descend_window(conn, window);
+        if (child != XCB_NONE)
+            window = child;
+    }
+
     xcb_disconnect(conn);
     return window;
 }
