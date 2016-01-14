@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
         free(reply);                                                                               \
     } while (0);
 
-    xmacro(_NET_WM_DESKTOP);
+#include "atoms.xmacro"
 #undef xmacro
 
     message_send_net_wm_desktop(XCB_NONE, 3, SI_NORMAL);

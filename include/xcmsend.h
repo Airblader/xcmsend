@@ -2,5 +2,5 @@
 #pragma once
 
 #define xmacro(atom) xcb_atom_t A_##atom;
-xmacro(_NET_WM_DESKTOP)
+#include "atoms.xmacro"
 #undef xmacro
