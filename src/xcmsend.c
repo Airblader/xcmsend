@@ -49,6 +49,7 @@ int main(int argc, char *argv[]) {
 
 static void at_exit_cb(void) {
     if (connection != NULL) {
+        xcb_flush(connection);
         xcb_disconnect(connection);
     }
 }

@@ -19,5 +19,8 @@ void message_send_net_wm_desktop(xcb_window_t window, uint32_t desktop, source_i
     event.data.data32[0] = desktop;
     event.data.data32[1] = source;
 
-    xcb_send_event(connection, 0, root, XCB_EVENT_MASK_NO_EVENT, (const char *)&event);
+    xcb_send_event(connection, 0, root,
+            XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT | XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY,
+            (const char *)&event);
+    xcb_flush(connection);
 }
